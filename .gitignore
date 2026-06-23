@@ -40,3 +40,6 @@ out/
 application-prod.properties
 .env
 *.env
+
+# macOS
+.DS_Store
