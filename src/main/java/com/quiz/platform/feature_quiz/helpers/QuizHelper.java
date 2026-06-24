@@ -15,6 +15,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+/**
+ * Helper component for quiz operations.
+ * Provides reusable business logic methods for quiz processing.
+ */
 @Component
 public class QuizHelper {
 
@@ -28,6 +32,12 @@ public class QuizHelper {
         this.choiceDao = choiceDao;
     }
 
+    /**
+     * Returns the points per question based on quiz level.
+     *
+     * @param level the quiz level
+     * @return points per question (1-4 based on level)
+     */
     public int getPointsPerQuestion(QuizLevel level) {
         return switch (level) {
             case BEGINNER -> 1;
@@ -37,6 +47,13 @@ public class QuizHelper {
         };
     }
 
+    /**
+     * Converts a quiz entity to a detailed response DTO.
+     *
+     * @param quiz the quiz entity
+     * @param showAnswers whether to include correct answers
+     * @return the quiz response DTO with questions and choices
+     */
     public QuizResponse convertToResponse(Quiz quiz, boolean showAnswers) {
         List<Question> questions = questionDao.findByQuizId(quiz.getId());
 
@@ -61,6 +78,12 @@ public class QuizHelper {
         return response;
     }
 
+    /**
+     * Converts a quiz entity to a list response DTO without questions.
+     *
+     * @param quiz the quiz entity
+     * @return the quiz response DTO without question details
+     */
     public QuizResponse convertToListResponse(Quiz quiz) {
         List<Question> questions = questionDao.findByQuizId(quiz.getId());
 
@@ -77,6 +100,13 @@ public class QuizHelper {
         return response;
     }
 
+    /**
+     * Fetches quizzes by category with pagination.
+     *
+     * @param category optional category filter
+     * @param pageable pagination parameters
+     * @return paginated list of public quizzes
+     */
     public Page<Quiz> fetchQuizzesByCategory(String category, Pageable pageable) {
         if (category == null || category.isEmpty()) {
             return quizDao.findByIsPublicTrue(pageable);
@@ -90,6 +120,13 @@ public class QuizHelper {
         }
     }
 
+    /**
+     * Creates a question entity from a request.
+     *
+     * @param request the question request
+     * @param quizId the ID of the quiz
+     * @return the created question entity (not persisted)
+     */
     public Question createQuestionFromRequest(QuestionRequest request, String quizId) {
         Question question = new Question();
         question.setQuizId(quizId);
@@ -100,6 +137,13 @@ public class QuizHelper {
         return question;
     }
 
+    /**
+     * Creates choices from a question request and persists them.
+     *
+     * @param request the question request containing choices
+     * @param questionId the ID of the question
+     * @return list of created choices
+     */
     public List<Choice> createChoicesFromRequest(QuestionRequest request, String questionId) {
         int orderIndex = 0;
         for (QuestionRequest.ChoiceRequest choiceRequest : request.getChoices()) {

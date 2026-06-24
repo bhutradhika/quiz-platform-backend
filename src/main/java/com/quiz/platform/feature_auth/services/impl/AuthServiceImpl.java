@@ -19,6 +19,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Implementation of {@link AuthService} for authentication operations.
+ * Handles user registration and login with JWT token generation.
+ */
 @Service
 @Transactional
 @RequiredArgsConstructor

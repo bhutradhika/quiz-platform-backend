@@ -16,6 +16,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Implementation of {@link FeedService} for feed operations.
+ * Handles business logic for dashboard stats and leaderboard.
+ */
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -38,6 +42,13 @@ public class FeedServiceImpl implements FeedService {
         Pageable pageable = PageRequest.of(0, limit);
         List<Attempt> topAttempts = attemptDao.findLeaderboardByQuizId(quizId, pageable);
 
+        return feedHelper.buildLeaderboard(topAttempts);
+    }
+
+    @Override
+    public List<LeaderboardEntry> getGlobalLeaderboard(String category, String level, int limit) {
+        Pageable pageable = PageRequest.of(0, limit);
+        List<Attempt> topAttempts = attemptDao.findGlobalLeaderboard(category, level, pageable);
         return feedHelper.buildLeaderboard(topAttempts);
     }
 }

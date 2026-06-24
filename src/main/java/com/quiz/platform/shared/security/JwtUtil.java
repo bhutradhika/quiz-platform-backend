@@ -11,6 +11,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * Utility class for JWT token operations.
+ * Handles token generation, validation, and claims extraction.
+ */
 @Component
 @Slf4j
 public class JwtUtil {

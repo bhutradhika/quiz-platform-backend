@@ -6,6 +6,10 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Data Access Object for User entities.
+ * Provides an abstraction layer over the UserRepository.
+ */
 @Repository
 @RequiredArgsConstructor
 public class UserDao {

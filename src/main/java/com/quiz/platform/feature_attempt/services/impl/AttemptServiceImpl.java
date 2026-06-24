@@ -25,6 +25,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Implementation of {@link AttemptService} for managing quiz attempts.
+ * Handles business logic for starting, completing, and querying quiz attempts.
+ */
 @Service
 @Transactional
 @RequiredArgsConstructor

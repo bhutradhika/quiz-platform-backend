@@ -31,6 +31,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Implementation of {@link QuizService} for quiz operations.
+ * Handles business logic for creating, retrieving, and managing quizzes.
+ */
 @Service
 @Transactional
 @RequiredArgsConstructor

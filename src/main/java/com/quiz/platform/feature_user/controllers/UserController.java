@@ -8,6 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * REST controller for user operations.
+ * Provides endpoints for retrieving user information.
+ */
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
@@ -15,6 +19,11 @@ public class UserController {
 
     private final UserService userService;
 
+    /**
+     * Retrieves the currently authenticated user's information.
+     *
+     * @return ResponseEntity containing user details
+     */
     @GetMapping()
     public ResponseEntity<ApiResponse> getCurrentUser() {
         UserInfo userInfo = (UserInfo) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

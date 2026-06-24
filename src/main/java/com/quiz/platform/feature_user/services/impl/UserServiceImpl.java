@@ -10,6 +10,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Implementation of {@link UserService} for user operations.
+ * Handles business logic for user management.
+ */
 @Service
 @Transactional
 @RequiredArgsConstructor
