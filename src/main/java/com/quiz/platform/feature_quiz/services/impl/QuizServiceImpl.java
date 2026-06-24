@@ -1,5 +1,6 @@
 package com.quiz.platform.feature_quiz.services.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.quiz.platform.feature_quiz.daos.ChoiceDao;
 import com.quiz.platform.feature_quiz.daos.QuestionDao;
 import com.quiz.platform.feature_quiz.daos.QuizDao;
@@ -15,6 +16,8 @@ import com.quiz.platform.feature_quiz.entities.postgres.QuizCategory;
 import com.quiz.platform.feature_quiz.entities.postgres.QuizLevel;
 import com.quiz.platform.feature_quiz.helpers.QuizHelper;
 import com.quiz.platform.feature_quiz.services.QuizService;
+import com.quiz.platform.shared.cache.CacheKeys;
+import com.quiz.platform.shared.cache.CacheService;
 import com.quiz.platform.shared.dtos.PagedResponse;
 import com.quiz.platform.shared.exception.BadRequestException;
 import com.quiz.platform.shared.exception.ResourceNotFoundException;
@@ -33,17 +36,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Implementation of {@link QuizService} for quiz operations.
- * Handles business logic for creating, retrieving, and managing quizzes.
+ * Handles business logic for creating, retrieving, and managing quizzes with Redis caching.
  */
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class QuizServiceImpl implements QuizService {
 
+    private static final long SIX_HOURS_SECONDS = 6 * 3600L;
+
     private final QuizDao quizDao;
     private final QuestionDao questionDao;
     private final ChoiceDao choiceDao;
     private final QuizHelper quizHelper;
+    private final CacheService cacheService;
 
     @Override
     public QuizResponse createQuiz(QuizRequest request) {
@@ -55,6 +61,7 @@ public class QuizServiceImpl implements QuizService {
         quiz.setIsPublic(request.getIsPublic());
 
         Quiz savedQuiz = quizDao.save(quiz);
+        invalidateCategoryStatsCache();
         return quizHelper.convertToResponse(savedQuiz, false);
     }
 
@@ -68,6 +75,14 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     public QuizResponse getQuizById(String quizId, UserInfo userInfo, boolean showAnswers) {
+        if (!showAnswers) {
+            String cacheKey = CacheKeys.quizDetailKey(quizId);
+            QuizResponse cached = cacheService.get(cacheKey, QuizResponse.class);
+            if (cached != null) {
+                return cached;
+            }
+        }
+
         Quiz quiz = quizDao.findById(quizId)
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz", "id", quizId));
 
@@ -75,7 +90,13 @@ public class QuizServiceImpl implements QuizService {
             throw new BadRequestException("This quiz is not public");
         }
 
-        return quizHelper.convertToResponse(quiz, showAnswers);
+        QuizResponse response = quizHelper.convertToResponse(quiz, showAnswers);
+        
+        if (!showAnswers) {
+            cacheService.set(CacheKeys.quizDetailKey(quizId), response, SIX_HOURS_SECONDS);
+        }
+        
+        return response;
     }
 
     @Override
@@ -89,6 +110,8 @@ public class QuizServiceImpl implements QuizService {
         quiz.setIsPublic(request.getIsPublic());
 
         Quiz updatedQuiz = quizDao.save(quiz);
+        cacheService.delete(CacheKeys.quizDetailKey(quizId));
+        invalidateCategoryStatsCache();
         return quizHelper.convertToResponse(updatedQuiz, true);
     }
 
@@ -98,6 +121,9 @@ public class QuizServiceImpl implements QuizService {
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz", "id", quizId));
 
         quizDao.delete(quiz);
+        cacheService.delete(CacheKeys.quizDetailKey(quizId));
+        cacheService.delete(CacheKeys.leaderboardByQuizKey(quizId));
+        invalidateCategoryStatsCache();
     }
 
     @Override
@@ -124,6 +150,7 @@ public class QuizServiceImpl implements QuizService {
             choiceDao.save(choice);
         }
 
+        cacheService.delete(CacheKeys.quizDetailKey(quizId));
         return quizHelper.convertToResponse(quiz, true);
     }
 
@@ -134,6 +161,11 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     public List<CategoryStats> getCategoryStats() {
+        List<CategoryStats> cached = cacheService.get(CacheKeys.CATEGORY_STATS, new TypeReference<List<CategoryStats>>() {});
+        if (cached != null) {
+            return cached;
+        }
+
         List<CategoryStats> stats = new ArrayList<>();
 
         for (QuizCategory category : QuizCategory.values()) {
@@ -153,6 +185,7 @@ public class QuizServiceImpl implements QuizService {
             }
         }
 
+        cacheService.set(CacheKeys.CATEGORY_STATS, stats, Long.MAX_VALUE);
         return stats;
     }
 
@@ -204,5 +237,9 @@ public class QuizServiceImpl implements QuizService {
         Page<Quiz> quizzes = quizDao.findByCategoryAndLevel(quizCategory, quizLevel, pageable);
         Page<QuizResponse> response = quizzes.map(q -> quizHelper.convertToListResponse(q));
         return PagedResponse.fromPage(response);
+    }
+
+    private void invalidateCategoryStatsCache() {
+        cacheService.delete(CacheKeys.CATEGORY_STATS);
     }
 }

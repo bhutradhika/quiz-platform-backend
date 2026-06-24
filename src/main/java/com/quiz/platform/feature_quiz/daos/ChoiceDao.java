@@ -38,6 +38,16 @@ public class ChoiceDao {
     }
 
     /**
+     * Finds all choices for all questions in a quiz.
+     *
+     * @param quizId the ID of the quiz
+     * @return list of all choices for the quiz
+     */
+    public List<Choice> findByQuizId(String quizId) {
+        return choiceRepository.findByQuizId(quizId);
+    }
+
+    /**
      * Saves a choice entity.
      *
      * @param choice the choice to save

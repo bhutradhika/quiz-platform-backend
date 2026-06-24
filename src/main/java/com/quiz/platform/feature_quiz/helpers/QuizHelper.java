@@ -11,6 +11,8 @@ import com.quiz.platform.feature_quiz.entities.postgres.Quiz;
 import com.quiz.platform.feature_quiz.entities.postgres.QuizCategory;
 import com.quiz.platform.feature_quiz.entities.postgres.QuizLevel;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -56,6 +58,10 @@ public class QuizHelper {
      */
     public QuizResponse convertToResponse(Quiz quiz, boolean showAnswers) {
         List<Question> questions = questionDao.findByQuizId(quiz.getId());
+        List<Choice> allChoices = choiceDao.findByQuizId(quiz.getId());
+
+        Map<String, List<Choice>> choicesByQuestionId = allChoices.stream()
+                .collect(Collectors.groupingBy(Choice::getQuestionId));
 
         QuizResponse response = new QuizResponse();
         response.setId(quiz.getId());
@@ -70,7 +76,7 @@ public class QuizHelper {
 
         response.setQuestions(questions.stream()
                 .map(q -> {
-                    List<Choice> choices = choiceDao.findByQuestionId(q.getId());
+                    List<Choice> choices = choicesByQuestionId.getOrDefault(q.getId(), List.of());
                     return QuizResponse.QuestionResponse.fromEntity(q, choices, !showAnswers);
                 })
                 .toList());

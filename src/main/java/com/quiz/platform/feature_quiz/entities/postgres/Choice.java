@@ -11,7 +11,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "choices", indexes = {
-    @Index(name = "idx_choice_question", columnList = "question_id")
+    @Index(name = "idx_choice_question", columnList = "question_id"),
+    @Index(name = "idx_choice_question_correct", columnList = "question_id, is_correct")
 })
 public class Choice {
 

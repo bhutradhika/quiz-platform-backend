@@ -13,6 +13,8 @@ import com.quiz.platform.feature_quiz.daos.ChoiceDao;
 import com.quiz.platform.feature_quiz.daos.QuizDao;
 import com.quiz.platform.feature_quiz.entities.postgres.Choice;
 import com.quiz.platform.feature_quiz.entities.postgres.Quiz;
+import com.quiz.platform.shared.cache.CacheKeys;
+import com.quiz.platform.shared.cache.CacheService;
 import com.quiz.platform.shared.dtos.PagedResponse;
 import com.quiz.platform.shared.exception.BadRequestException;
 import com.quiz.platform.shared.exception.ResourceNotFoundException;
@@ -39,6 +41,7 @@ public class AttemptServiceImpl implements AttemptService {
     private final AnswerDao answerDao;
     private final ChoiceDao choiceDao;
     private final AttemptHelper attemptHelper;
+    private final CacheService cacheService;
 
     @Override
     public AttemptResponse startAttempt(String userId, String quizId) {
@@ -96,6 +99,8 @@ public class AttemptServiceImpl implements AttemptService {
 
         attempt.setCompletedAt(new Date());
         Attempt savedAttempt = attemptDao.save(attempt);
+
+        invalidateLeaderboardCaches(attempt.getQuizId(), userId);
 
         Quiz quiz = quizDao.findById(attempt.getQuizId())
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz", "id", attempt.getQuizId()));
@@ -161,5 +166,11 @@ public class AttemptServiceImpl implements AttemptService {
         return attemptDao.findByUserIdAndCompletedAtIsNotNull(userId).stream()
                 .map(Attempt::getQuizId)
                 .toList();
+    }
+
+    private void invalidateLeaderboardCaches(String quizId, String userId) {
+        cacheService.delete(CacheKeys.leaderboardByQuizKey(quizId));
+        cacheService.deleteByPattern(CacheKeys.GLOBAL_LEADERBOARD + "*");
+        cacheService.delete(CacheKeys.dashboardStatsKey(userId));
     }
 }

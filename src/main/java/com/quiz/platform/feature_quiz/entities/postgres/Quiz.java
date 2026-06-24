@@ -11,7 +11,10 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "quizzes", indexes = {
-    @Index(name = "idx_quiz_category", columnList = "category")
+    @Index(name = "idx_quiz_category", columnList = "category"),
+    @Index(name = "idx_quiz_category_level_public", columnList = "category, level, is_public"),
+    @Index(name = "idx_quiz_is_public", columnList = "is_public"),
+    @Index(name = "idx_quiz_created_at", columnList = "created_at")
 })
 public class Quiz {
 
