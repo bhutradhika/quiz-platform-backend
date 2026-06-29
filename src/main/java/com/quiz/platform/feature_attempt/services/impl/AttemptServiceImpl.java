@@ -97,13 +97,13 @@ public class AttemptServiceImpl implements AttemptService {
             throw new BadRequestException("This attempt has already been completed");
         }
 
+        Quiz quiz = quizDao.findById(attempt.getQuizId())
+                .orElseThrow(() -> new ResourceNotFoundException("Quiz", "id", attempt.getQuizId()));
+
         attempt.setCompletedAt(new Date());
         Attempt savedAttempt = attemptDao.save(attempt);
 
-        invalidateLeaderboardCaches(attempt.getQuizId(), userId);
-
-        Quiz quiz = quizDao.findById(attempt.getQuizId())
-                .orElseThrow(() -> new ResourceNotFoundException("Quiz", "id", attempt.getQuizId()));
+        invalidateLeaderboardCaches(quiz, userId);
 
         return attemptHelper.convertToResponse(savedAttempt, quiz.getTitle(), quiz.getCategory().name(), quiz.getLevel() != null ? quiz.getLevel().name() : "BEGINNER");
     }
@@ -168,9 +168,16 @@ public class AttemptServiceImpl implements AttemptService {
                 .toList();
     }
 
-    private void invalidateLeaderboardCaches(String quizId, String userId) {
+    private void invalidateLeaderboardCaches(Quiz quiz, String userId) {
+        String quizId = quiz.getId();
+        String category = quiz.getCategory().name();
+        String level = quiz.getLevel() != null ? quiz.getLevel().name() : "BEGINNER";
+
         cacheService.delete(CacheKeys.leaderboardByQuizKey(quizId));
-        cacheService.deleteByPattern(CacheKeys.GLOBAL_LEADERBOARD + "*");
+        cacheService.delete(CacheKeys.globalLeaderboardKey(category, level));
+        cacheService.delete(CacheKeys.globalLeaderboardKey(category, null));
+        cacheService.delete(CacheKeys.globalLeaderboardKey(null, level));
+        cacheService.delete(CacheKeys.globalLeaderboardKey(null, null));
         cacheService.delete(CacheKeys.dashboardStatsKey(userId));
     }
 }

@@ -33,6 +33,8 @@ public class CacheService {
             redisTemplate.opsForValue().set(key, json, ttlSeconds, TimeUnit.SECONDS);
         } catch (JsonProcessingException e) {
             log.error("Failed to serialize value for key: {}", key, e);
+        } catch (Exception e) {
+            log.warn("Redis operation failed for key: {} - {}", key, e.getMessage());
         }
     }
 
@@ -44,14 +46,17 @@ public class CacheService {
      * @return the cached value or null
      */
     public <T> T get(String key, Class<T> type) {
-        String json = redisTemplate.opsForValue().get(key);
-        if (json == null) {
-            return null;
-        }
         try {
+            String json = redisTemplate.opsForValue().get(key);
+            if (json == null) {
+                return null;
+            }
             return objectMapper.readValue(json, type);
         } catch (JsonProcessingException e) {
             log.error("Failed to deserialize value for key: {}", key, e);
+            return null;
+        } catch (Exception e) {
+            log.warn("Redis operation failed for key: {} - {}", key, e.getMessage());
             return null;
         }
     }
@@ -64,14 +69,17 @@ public class CacheService {
      * @return the cached value or null
      */
     public <T> T get(String key, TypeReference<T> typeReference) {
-        String json = redisTemplate.opsForValue().get(key);
-        if (json == null) {
-            return null;
-        }
         try {
+            String json = redisTemplate.opsForValue().get(key);
+            if (json == null) {
+                return null;
+            }
             return objectMapper.readValue(json, typeReference);
         } catch (JsonProcessingException e) {
             log.error("Failed to deserialize value for key: {}", key, e);
+            return null;
+        } catch (Exception e) {
+            log.warn("Redis operation failed for key: {} - {}", key, e.getMessage());
             return null;
         }
     }
@@ -82,7 +90,11 @@ public class CacheService {
      * @param key the cache key
      */
     public void delete(String key) {
-        redisTemplate.delete(key);
+        try {
+            redisTemplate.delete(key);
+        } catch (Exception e) {
+            log.warn("Redis delete failed for key: {} - {}", key, e.getMessage());
+        }
     }
 
     /**
@@ -91,7 +103,14 @@ public class CacheService {
      * @param pattern the key pattern
      */
     public void deleteByPattern(String pattern) {
-        redisTemplate.keys(pattern).forEach(redisTemplate::delete);
+        try {
+            var keys = redisTemplate.keys(pattern);
+            if (keys != null) {
+                keys.forEach(redisTemplate::delete);
+            }
+        } catch (Exception e) {
+            log.warn("Redis deleteByPattern failed for pattern: {} - {}", pattern, e.getMessage());
+        }
     }
 
     /**
@@ -101,7 +120,12 @@ public class CacheService {
      * @return true if exists
      */
     public boolean exists(String key) {
-        return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+        try {
+            return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+        } catch (Exception e) {
+            log.warn("Redis exists failed for key: {} - {}", key, e.getMessage());
+            return false;
+        }
     }
 
     /**
@@ -111,6 +135,10 @@ public class CacheService {
      * @param ttlSeconds time to live in seconds
      */
     public void expire(String key, long ttlSeconds) {
-        redisTemplate.expire(key, ttlSeconds, TimeUnit.SECONDS);
+        try {
+            redisTemplate.expire(key, ttlSeconds, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            log.warn("Redis expire failed for key: {} - {}", key, e.getMessage());
+        }
     }
 }

@@ -105,9 +105,23 @@ public class AttemptDao {
      * @return list of top attempts sorted by score
      */
     public List<Attempt> findGlobalLeaderboard(String category, String level, Pageable pageable) {
-        QuizCategory categoryEnum = category != null ? QuizCategory.valueOf(category) : null;
-        QuizLevel levelEnum = level != null ? QuizLevel.valueOf(level) : null;
+        QuizCategory categoryEnum = parseCategory(category);
+        QuizLevel levelEnum = parseLevel(level);
         return attemptRepository.findGlobalLeaderboard(categoryEnum, levelEnum, pageable);
+    }
+
+    private QuizCategory parseCategory(String category) {
+        if (category == null || category.equalsIgnoreCase("all")) {
+            return null;
+        }
+        return QuizCategory.valueOf(category.toUpperCase());
+    }
+
+    private QuizLevel parseLevel(String level) {
+        if (level == null || level.equalsIgnoreCase("all")) {
+            return null;
+        }
+        return QuizLevel.valueOf(level.toUpperCase());
     }
 
     /**

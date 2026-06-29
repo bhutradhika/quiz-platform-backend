@@ -24,20 +24,20 @@ public class Choice {
     @Column(name = "question_id", nullable = false)
     private String questionId;
 
-    @Column(name = "text", nullable = false)
+    @Column(name = "choice_text", nullable = false)
     private String text;
 
     @Column(name = "is_correct", nullable = false)
     private Boolean isCorrect = false;
 
-    @Column(name = "order_index", nullable = false)
+    @Column(name = "choice_order", nullable = false)
     private Integer orderIndex = 0;
 
     @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at", updatable = false)
     private Date createdAt;
 
     @LastModifiedDate
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at")
     private Date updatedAt;
 }

@@ -23,21 +23,21 @@ public class Question {
     @Column(name = "quiz_id", nullable = false)
     private String quizId;
 
-    @Column(name = "text", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "question_text", nullable = false, columnDefinition = "TEXT")
     private String text;
 
-    @Column(name = "type", nullable = false)
+    @Column(name = "type")
     @Enumerated(EnumType.STRING)
     private QuizType type = QuizType.MULTIPLE_CHOICE;
 
-    @Column(name = "points", nullable = false)
+    @Column(name = "points")
     private Integer points = 1;
 
     @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at", updatable = false)
     private Date createdAt;
 
     @LastModifiedDate
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at")
     private Date updatedAt;
 }

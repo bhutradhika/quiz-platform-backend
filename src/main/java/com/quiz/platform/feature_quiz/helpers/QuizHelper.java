@@ -114,7 +114,7 @@ public class QuizHelper {
      * @return paginated list of public quizzes
      */
     public Page<Quiz> fetchQuizzesByCategory(String category, Pageable pageable) {
-        if (category == null || category.isEmpty()) {
+        if (category == null || category.isEmpty() || category.equalsIgnoreCase("all")) {
             return quizDao.findByIsPublicTrue(pageable);
         }
 

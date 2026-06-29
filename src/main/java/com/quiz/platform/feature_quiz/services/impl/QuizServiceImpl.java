@@ -215,28 +215,34 @@ public class QuizServiceImpl implements QuizService {
     private PagedResponse<QuizResponse> getQuizzesByCategoryAndLevel(String category, String level, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
-        QuizCategory quizCategory = null;
-        QuizLevel quizLevel = null;
-
-        if (category != null && !category.isEmpty()) {
-            try {
-                quizCategory = QuizCategory.valueOf(category.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw new BadRequestException("Invalid category: " + category);
-            }
-        }
-
-        if (level != null && !level.isEmpty()) {
-            try {
-                quizLevel = QuizLevel.valueOf(level.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw new BadRequestException("Invalid level: " + level);
-            }
-        }
+        QuizCategory quizCategory = parseCategory(category);
+        QuizLevel quizLevel = parseLevel(level);
 
         Page<Quiz> quizzes = quizDao.findByCategoryAndLevel(quizCategory, quizLevel, pageable);
         Page<QuizResponse> response = quizzes.map(q -> quizHelper.convertToListResponse(q));
         return PagedResponse.fromPage(response);
+    }
+
+    private QuizCategory parseCategory(String category) {
+        if (category == null || category.isEmpty() || category.equalsIgnoreCase("all")) {
+            return null;
+        }
+        try {
+            return QuizCategory.valueOf(category.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Invalid category: " + category);
+        }
+    }
+
+    private QuizLevel parseLevel(String level) {
+        if (level == null || level.isEmpty() || level.equalsIgnoreCase("all")) {
+            return null;
+        }
+        try {
+            return QuizLevel.valueOf(level.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Invalid level: " + level);
+        }
     }
 
     private void invalidateCategoryStatsCache() {
