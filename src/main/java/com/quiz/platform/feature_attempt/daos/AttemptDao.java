@@ -2,6 +2,8 @@ package com.quiz.platform.feature_attempt.daos;
 
 import com.quiz.platform.feature_attempt.entities.postgres.Attempt;
 import com.quiz.platform.feature_attempt.repositories.AttemptRepository;
+import com.quiz.platform.feature_quiz.entities.postgres.QuizCategory;
+import com.quiz.platform.feature_quiz.entities.postgres.QuizLevel;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -103,7 +105,9 @@ public class AttemptDao {
      * @return list of top attempts sorted by score
      */
     public List<Attempt> findGlobalLeaderboard(String category, String level, Pageable pageable) {
-        return attemptRepository.findGlobalLeaderboard(category, level, pageable);
+        QuizCategory categoryEnum = category != null ? QuizCategory.valueOf(category) : null;
+        QuizLevel levelEnum = level != null ? QuizLevel.valueOf(level) : null;
+        return attemptRepository.findGlobalLeaderboard(categoryEnum, levelEnum, pageable);
     }
 
     /**

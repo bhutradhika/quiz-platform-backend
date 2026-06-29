@@ -185,7 +185,7 @@ public class QuizServiceImpl implements QuizService {
             }
         }
 
-        cacheService.set(CacheKeys.CATEGORY_STATS, stats, Long.MAX_VALUE);
+        cacheService.set(CacheKeys.CATEGORY_STATS, stats, 2592000L);
         return stats;
     }
 

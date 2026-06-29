@@ -1,6 +1,8 @@
 package com.quiz.platform.feature_attempt.repositories;
 
 import com.quiz.platform.feature_attempt.entities.postgres.Attempt;
+import com.quiz.platform.feature_quiz.entities.postgres.QuizCategory;
+import com.quiz.platform.feature_quiz.entities.postgres.QuizLevel;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -27,7 +29,7 @@ public interface AttemptRepository extends JpaRepository<Attempt, String> {
     List<Attempt> findByUserIdAndCompletedAtIsNotNull(String userId);
 
     @Query("SELECT a FROM Attempt a JOIN Quiz q ON a.quizId = q.id WHERE a.completedAt IS NOT NULL AND (:category IS NULL OR q.category = :category) AND (:level IS NULL OR q.level = :level) ORDER BY a.score DESC, a.completedAt ASC")
-    List<Attempt> findGlobalLeaderboard(@Param("category") String category, @Param("level") String level, Pageable pageable);
+    List<Attempt> findGlobalLeaderboard(@Param("category") QuizCategory category, @Param("level") QuizLevel level, Pageable pageable);
 
     @Query("SELECT COUNT(a) FROM Attempt a WHERE a.userId = :userId AND a.completedAt IS NOT NULL")
     Long countCompletedByUserId(@Param("userId") String userId);
