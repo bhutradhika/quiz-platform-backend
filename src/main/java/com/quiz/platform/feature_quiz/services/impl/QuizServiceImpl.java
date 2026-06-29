@@ -91,11 +91,11 @@ public class QuizServiceImpl implements QuizService {
         }
 
         QuizResponse response = quizHelper.convertToResponse(quiz, showAnswers);
-        
+
         if (!showAnswers) {
             cacheService.set(CacheKeys.quizDetailKey(quizId), response, SIX_HOURS_SECONDS);
         }
-        
+
         return response;
     }
 
